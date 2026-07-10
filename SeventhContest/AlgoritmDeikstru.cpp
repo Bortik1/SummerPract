@@ -1,53 +1,63 @@
-#include <iostream>
-#include <vector>
-#include <queue>
-#include <algorithm>
+#include <bits/stdc++.h>
 using namespace std;
 
+const long long INF = 1e18;
+
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(nullptr);
-    
-    int n, m, s;
-    cin >> n >> m >> s;
-    
-    vector<vector<pair<int, int>>> graph(n + 1);
-    for (int i = 0; i < m; i++) {
-        int u, v, w;
-        cin >> u >> v >> w;
-        graph[u].push_back({v, w});
-        graph[v].push_back({u, w});  // граф неориентированный
-    }
-    
-    vector<int> width(n + 1, -1);
-    width[s] = 1e9 + 1;  // стартовая вершина имеет "бесконечную" ширину
-    
-    priority_queue<pair<int, int>> pq;  // max-heap по ширине
-    pq.push({width[s], s});
-    
-    while (!pq.empty()) {
-        auto [w, u] = pq.top();
-        pq.pop();
-        
-        if (w != width[u]) continue;  // устаревшая запись — пропускаем
-        
-        for (auto [v, edge_w] : graph[u]) {
-            int new_width = min(width[u], edge_w);  // ширина пути = минимум на ребре
-            if (new_width > width[v]) {  // нашли более широкий путь
-                width[v] = new_width;
-                pq.push({width[v], v});
-            }
-        }
-    }
-    
-    for (int i = 1; i <= n; i++) {
-        if (i == s) {
-            cout << -1 << " ";  // для стартовой вершины выводим -1
-        } else {
-            cout << width[i] << " ";
-        }
-    }
-    cout << endl;
-    
-    return 0;
+    ios::sync_with_stdio(0);
+    cin.tie(0);
+
+    int n, m;
+    cin >> n >> m;
+
+    vector<vector<pair<int, long long>>> adj(n + 1);
+    for (int i = 0; i < m; ++i) {
+        int u, v;
+        long long w;
+        cin >> u >> v >> w;
+        adj[u].push_back({v, w});
+    }
+
+    vector<long long> dist(n + 1, INF);
+    vector<int> parent(n + 1, 0);
+
+    dist[1] = 0;
+
+    priority_queue<pair<long long, int>, vector<pair<long long, int>>, greater<pair<long long, int>>> pq;
+    pq.push({0, 1});
+
+    while (!pq.empty()) {
+        auto [d, u] = pq.top();
+        pq.pop();
+
+        if (d > dist[u]) continue;
+
+        if (u == n) break;
+
+        for (auto [v, w] : adj[u]) {
+            if (dist[u] + w < dist[v]) {
+                dist[v] = dist[u] + w;
+                parent[v] = u;
+                pq.push({dist[v], v});
+            }
+        }
+    }
+
+    if (dist[n] == INF) {
+        cout << -1 << '\n';
+    } else {
+        vector<int> path;
+        int cur = n;
+        while (cur != 0) {
+            path.push_back(cur);
+            cur = parent[cur];
+        }
+        reverse(path.begin(), path.end());
+
+        for (int i = 0; i < (int)path.size(); ++i) {
+            cout << path[i] << (i == (int)path.size() - 1 ? '\n' : ' ');
+        }
+    }
+
+    return 0;
 }
